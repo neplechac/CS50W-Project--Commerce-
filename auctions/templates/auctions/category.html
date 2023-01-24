@@ -1,0 +1,33 @@
+{% extends "auctions/layout.html" %}
+
+{% block title %}
+Auctions | Category: {{ category.name }}
+{% endblock %}
+
+{% block body %}
+    <div class="container">
+        {% if listings %}
+            <h2>Category: {{ category.name }}</h2>
+
+            {% for listing in listings %}
+                <div class="row border border-light listItemContainer m-1 p-1 rounded shadow-sm">
+                    <div class="listItemImgContainer">
+                        {% if listing.image %}
+                            <img class="listItemImg" src="{{ listing.image }}" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg';">
+                        {% else %}
+                            <img class="listItemImg" src="https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg">
+                        {% endif %}
+                    </div>
+                    <div class="listItemInfoContainer pl-3">
+                        <h5 class="mt-1 mb-3"><a href="{% url 'show_listing' listing.id %}">{{ listing.title }}</a></h5>
+                        <p><b>Price: </b> ${{ prices|get_item:listing.id }}</p>
+                        <p><i>{{ listing.description|truncatewords:10 }}</i></p>
+                        <p class="small">Created: {{ listing.date_created }}</p>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <h2>No active listings in {{ category.name }}.</h2>
+        {% endif %}
+    </div>
+{% endblock %}

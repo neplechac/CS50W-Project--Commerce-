@@ -1,0 +1,104 @@
+{% extends "auctions/layout.html" %}
+
+{% block title %}
+Auctions | Listing: {{ listing.title }}
+{% endblock %}
+
+{% block body %}
+    <div class="container text-center border border-light rounded shadow">
+
+        <h2 class="mt-3">{{ listing.title }}</h2>
+
+        <div class="listingImgContainer">
+            {% if listing.image %}
+                <img class="listingImg" src="{{ listing.image }}" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg';">
+            {% else %}
+                <img class="listingImg" src="https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg">
+            {% endif %}
+        </div>
+
+        <p class="px-5"><i>{{ listing.description }}</i></p>
+
+        <div class="listingDetails mt-3">
+            <p><b>Listed by: </b>{{ listing.owner }}</p>
+            <p><b>Category: </b><a href="{% url 'category' listing.category.name %}">{{ listing.category.name }}</a></p>
+            <p><b>Original price: </b> ${{listing.price }}</p>
+            <p><b>Created: </b> {{ listing.date_created }}</p>
+        </div>
+
+        {% if listing.active %}
+            {% if bids %}
+                <h4 class="d-inline-block p-2 mt-2 border border-dark rounded">${{ bids.0.price }}</h4>
+                <p>{{ bids|length }} bid(s) so far. User <b>{{ bids.0.user }}</b> has the current bid.</p>
+            {% else %}
+                <h4 class="d-inline-block p-2 mt-2 border border-dark rounded">${{ listing.price }}</h4>
+                <p>No bids so far.</p>
+            {% endif %}
+
+
+            {% if user.is_authenticated %}
+                {% if user == listing.owner %}
+                    <a class="btn btn-danger" href="{% url 'close_listing' listing.id %}">Close listing</a>
+                {% else %}
+                    <form action="{% url 'bid_submit' listing.id %}" method="post">
+                        <div class="container col-8">
+                            {% csrf_token %}
+                            {{ bid_form }}
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-2">Place bid</button>
+                    </form>
+                {% endif %}
+            {% else %}
+                <p><b>Log in to bid & comment.</b></p>
+            {% endif %}
+    
+        {% else %}
+            <p class="text-danger mt-3"><b>This listing is closed</b></p>
+            {% if listing.winner %}
+                <p><b>Winning bid: </b>${{ bids.0.price }} by <b>{{ bids.0.user }}</b></p>
+            {% else %}
+                <p><b>No winner</b></p>
+            {% endif %}
+        {% endif %}
+
+        {% if user.is_authenticated %}
+        <div class="container text-center my-2">
+            {% if listing in user.watchlisted.all %}
+                <a href="{% url 'watchlist' listing.id %}" class="btn btn-outline-primary btn-sm mb-3">Remove from watchlist</a>
+            {% else %}
+                <a href="{% url 'watchlist' listing.id %}" class="btn btn-outline-primary btn-sm mb-3">Add to watchlist</a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div>
+            <h4>Comments:</h4>
+            {% if user.is_authenticated %}
+                <form action="{% url 'comment' listing.id %}" method="post">
+                    <div class="container col-sm-8">
+                        {% csrf_token %}
+                        {{ comment_form }}
+                    </div>
+                    <button type="submit" class="btn btn-primary my-2">Submit comment</button>
+                </form>
+            {% endif %}
+
+            {% if comments %}
+                {% for comment in comments %}
+                    <div class="container col-sm-8 border border-light rounded py-1 my-1">
+                        <div class="d-flex justify-content-between">
+                            <span><b>{{ comment.user }}</b> wrote...</span>
+                            <span class="text-muted">{{ comment.date }}</span>
+                        </div>
+                        <div class="mt-2">
+                            <p class="text-justify"><i>{{ comment.text }}</i></p>
+                        </div>
+                    </div>
+                    
+                {% endfor %}
+            {% else %}
+                <p>No comments so far.</p>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
